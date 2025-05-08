@@ -1,38 +1,75 @@
 - hosts: all
   become: true
   pre_tasks:
+    - name: Install Updates for Fedora
+      tags: always
+      ansible.builtin.command:
+        cmd: dnf -y update
+      when: ansible_distribution == "Fedora"
 
-  - name: Install Updates for Fedora
-    tags: always
-    ansible.builtin.command:
-      cmd: dnf -y update
-    when: ansible_distribution == "Fedora"
-
-  - name: Install Updates for Ubuntu
-    tags: always
-    ansible.builtin.apt:
-      upgrade: dist
-      update_cache: yes
-    when: ansible_distribution == "Ubuntu"
+    - name: Install Updates for Ubuntu
+      tags: always
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
 
 - hosts: web_servers
   become: true
   tasks:
-
-  - name: Install Apache2 on Web Servers
-    tags: apache, ubuntu
-    ansible.builtin.apt:
-      name:
-        - apache2
-        - libapache2-mod-php
-    when: ansible_distribution == "Ubuntu"
+    - name: Install Apache2 on Web Servers (Ubuntu)
+      tags: apache, ubuntu
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - libapache2-mod-php
+      when: ansible_distribution == "Ubuntu"
+    
+    - name: Ensure Apache2 is running (Ubuntu)
+      tags: ubuntu, apache
+      ansible.builtin.service:
+        name: apache2
+        state: started
+      when: ansible_distribution == "Ubuntu"
+    
+    - name: Copy HTML file for site
+      tags: apache, ubuntu
+      ansible.builtin.copy:
+        src: default_site.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
 
 - hosts: db_servers
   tags: db, fedora
   become: true
   tasks:
+    - name: Install MariaDB on Web Servers
+      ansible.builtin.command:
+        cmd: dnf -y install httpd php mariadb update
+      when: ansible_os_family == "RedHat"
 
-  - name: Install MariaDB on Web Servers
-    ansible.builtin.command:
-        cmd: dnf -y install mariadb update
-    when: ansible_os_family == "RedHat"
+    - name: Change email address for Admin
+      tags: apache, fedora
+      ansible.builtin.lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regex: '^ServerAdmin'
+        line: ServerAdmin abc@def.io
+      when: ansible_os_family == "RedHat"
+      register: httpd
+    
+    - name: Restart HTTPD (Fedora)
+      tags: fedora, apache
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
+      when: httpd.changed
+
+    - name: Ensure Apache2 is running (Fedora)
+      tags: fedora, apache
+      ansible.builtin.service:
+        name: httpd
+        state: started
+      when: ansible_os_family == "RedHat"
+      
