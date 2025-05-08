@@ -1,38 +1,19 @@
 ---
+
 - hosts: all
   become: true
   
   tasks:
-    - name: Update Ubuntu Repository Index
+    - name: Install Apache2 & PHP Package
       ansible.builtin.apt:
+        name: 
+          - apache2
+          - libapache2-mod-php
+        state: latest
         update_cache: yes
       when: ansible_distribution == "Ubuntu"
 
-    - name: Install Apache2 Package
-      ansible.builtin.apt:
-        name: apache2
-        state: latest
-      when: ansible_distribution == "Ubuntu"
-
-    - name: Update Support for PHP
-      ansible.builtin.apt:
-        name: libapache2-mod-php
-        state: latest
-      when: ansible_distribution == "Ubuntu"
-    
-    - name: Update Fedora Repository Index
-      ansible.builtin.dnf:
-        update_cache: yes
-      when: ansible_distribution == "Fedora"
-
-    - name: Install Apache2 Package
-      ansible.builtin.dnf:
-        name: httpd
-        state: latest
-      when: ansible_distribution == "Fedora"
-
-    - name: Update Support for PHP
-      ansible.builtin.dnf:
-        name: php
-        state: latest
-      when: ansible_distribution == "Fedora"
+    - name: Install Apache2 & PHP Package (RedHat)
+      ansible.builtin.command:
+        cmd: dnf -y install httpd php update
+      when: ansible_os_family == "RedHat"

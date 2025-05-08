@@ -1,0 +1,54 @@
+---
+- name: Instalar Apache e PHP em Ubuntu e Fedora
+  hosts: all
+  become: true
+  vars:
+    apache_pkg:
+      Debian: apache2
+      RedHat: httpd
+    php_pkg:
+      Debian: php
+      RedHat: php
+    apache_service:
+      Debian: apache2
+      RedHat: httpd
+  tasks:
+    - name: Tarefas para Debian/Ubuntu
+      block:
+        - name: Atualizar cache de pacotes
+          apt:
+            update_cache: yes
+        - name: Instalar Apache
+          apt:
+            name: "{{ apache_pkg['Debian'] }}"
+            state: present
+        - name: Instalar PHP
+          apt:
+            name: "{{ php_pkg['Debian'] }}"
+            state: present
+        - name: Iniciar e habilitar serviço Apache
+          service:
+            name: "{{ apache_service['Debian'] }}"
+            state: started
+            enabled: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Tarefas para Fedora
+      block:
+        - name: Atualizar cache de pacotes
+          dnf:
+            update_cache: yes
+        - name: Instalar Apache
+          dnf:
+            name: "{{ apache_pkg['RedHat'] }}"
+            state: present
+        - name: Instalar PHP
+          dnf:
+            name: "{{ php_pkg['RedHat'] }}"
+            state: present
+        - name: Iniciar e habilitar serviço Apache
+          service:
+            name: "{{ apache_service['RedHat'] }}"
+            state: started
+            enabled: yes
+      when: ansible_os_family == "RedHat"
