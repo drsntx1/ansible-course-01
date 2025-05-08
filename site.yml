@@ -13,6 +13,27 @@
         upgrade: dist
         update_cache: yes
       when: ansible_distribution == "Ubuntu"
+    
+    - name: Create User
+      tags: always
+      ansible.builtin.user:
+        name: gisele
+        groups: root
+
+    - name: Create sudoer for Gisele
+      tags: always
+      ansible.builtin.copy:
+        src: sudoer_gisele
+        dest: /etc/sudoers.d/gisele
+        owner: root
+        group: root
+        mode: 440
+
+    - name: Add SSH Key for Gisele user
+      tags: always
+      ansible.builtin.authorized_key:
+        user: gisele
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAyDG8ssYd6JV4xk4o4vtbM5XYGTyZjKGWqSm5GJpTnH dsantos@ubuntu-ws"
 
 - hosts: web_servers
   become: true
