@@ -1,0 +1,34 @@
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Install Updates for Fedora
+    ansible.builtin.command:
+      cmd: dnf -y update
+    when: ansible_distribution == "Fedora"
+
+  - name: Install Updates for Ubuntu
+    ansible.builtin.apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+  - name: Install Apache2 on Web Servers
+    ansible.builtin.apt:
+      name:
+        - apache2
+        - libapache2-mod-php
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: db_servers
+  become: true
+  tasks:
+
+  - name: Install MariaDB on Web Servers
+    ansible.builtin.command:
+        cmd: dnf -y install mariadb update
+    when: ansible_os_family == "RedHat"
