@@ -13,7 +13,7 @@
         upgrade: dist
         update_cache: yes
       when: ansible_distribution == "Ubuntu"
-    
+
     - name: Create User
       tags: always
       ansible.builtin.user:
@@ -45,14 +45,14 @@
           - apache2
           - libapache2-mod-php
       when: ansible_distribution == "Ubuntu"
-    
+
     - name: Ensure Apache2 is running (Ubuntu)
       tags: ubuntu, apache
       ansible.builtin.service:
         name: apache2
         state: started
       when: ansible_distribution == "Ubuntu"
-    
+
     - name: Copy HTML file for site
       tags: apache, ubuntu
       ansible.builtin.copy:
@@ -75,11 +75,11 @@
       tags: apache, fedora
       ansible.builtin.lineinfile:
         path: /etc/httpd/conf/httpd.conf
-        regex: '^ServerAdmin'
+        regex: "^ServerAdmin"
         line: ServerAdmin abc@def.io
       when: ansible_os_family == "RedHat"
       register: httpd
-    
+
     - name: Restart HTTPD (Fedora)
       tags: fedora, apache
       ansible.builtin.service:
@@ -93,4 +93,3 @@
         name: httpd
         state: started
       when: ansible_os_family == "RedHat"
-      
