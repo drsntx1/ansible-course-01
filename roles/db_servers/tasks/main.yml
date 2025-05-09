@@ -1,0 +1,4 @@
+- name: Install MariaDB on Web Servers
+  ansible.builtin.command:
+    cmd: dnf -y install mariadb
+  when: ansible_os_family == "RedHat"

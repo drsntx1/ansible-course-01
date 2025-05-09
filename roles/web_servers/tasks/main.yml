@@ -1,0 +1,34 @@
+- name: Install Apache2 on Web Servers (Ubuntu)
+  tags: apache, ubuntu
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - libapache2-mod-php
+  when: ansible_distribution == "Ubuntu"
+
+- name: Ensure Apache2 is running (Ubuntu)
+  tags: ubuntu, apache
+  ansible.builtin.service:
+    name: apache2
+    state: started
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install Apache2 on Web Servers (RedHat)
+  tags: apache, fedora
+  ansible.builtin.command:
+    cmd: dnf -y install httpd php update
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure Apache2 is running (Ubuntu)
+  tags: ubuntu, apache
+  ansible.builtin.service:
+    name: apache2
+    state: started
+  when: ansible_distribution == "Ubuntu"
+
+- name: Ensure Apache2 is running (Fedora)
+  tags: fedora, apache
+  ansible.builtin.service:
+    name: httpd
+    state: started
+  when: ansible_os_family == "RedHat"

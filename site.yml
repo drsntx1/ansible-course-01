@@ -14,82 +14,17 @@
         update_cache: yes
       when: ansible_distribution == "Ubuntu"
 
-    - name: Create User
-      tags: always
-      ansible.builtin.user:
-        name: gisele
-        groups: root
+- hosts: all
+  become: true
+  roles:
+    - base
 
-    - name: Create sudoer for Gisele
-      tags: always
-      ansible.builtin.copy:
-        src: sudoer_gisele
-        dest: /etc/sudoers.d/gisele
-        owner: root
-        group: root
-        mode: 440
-
-    - name: Add SSH Key for Gisele user
-      tags: always
-      ansible.builtin.authorized_key:
-        user: gisele
-        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAyDG8ssYd6JV4xk4o4vtbM5XYGTyZjKGWqSm5GJpTnH dsantos@ubuntu-ws"
+- hosts: db_servers
+  become: true
+  roles:
+    - db_servers
 
 - hosts: web_servers
   become: true
-  tasks:
-    - name: Install Apache2 on Web Servers (Ubuntu)
-      tags: apache, ubuntu
-      ansible.builtin.apt:
-        name:
-          - apache2
-          - libapache2-mod-php
-      when: ansible_distribution == "Ubuntu"
-
-    - name: Ensure Apache2 is running (Ubuntu)
-      tags: ubuntu, apache
-      ansible.builtin.service:
-        name: apache2
-        state: started
-      when: ansible_distribution == "Ubuntu"
-
-    - name: Copy HTML file for site
-      tags: apache, ubuntu
-      ansible.builtin.copy:
-        src: default_site.html
-        dest: /var/www/html/index.html
-        owner: root
-        group: root
-        mode: 0644
-
-- hosts: db_servers
-  tags: db, fedora
-  become: true
-  tasks:
-    - name: Install MariaDB on Web Servers
-      ansible.builtin.command:
-        cmd: dnf -y install httpd php mariadb update
-      when: ansible_os_family == "RedHat"
-
-    - name: Change email address for Admin
-      tags: apache, fedora
-      ansible.builtin.lineinfile:
-        path: /etc/httpd/conf/httpd.conf
-        regex: "^ServerAdmin"
-        line: ServerAdmin abc@def.io
-      when: ansible_os_family == "RedHat"
-      register: httpd
-
-    - name: Restart HTTPD (Fedora)
-      tags: fedora, apache
-      ansible.builtin.service:
-        name: httpd
-        state: restarted
-      when: httpd.changed
-
-    - name: Ensure Apache2 is running (Fedora)
-      tags: fedora, apache
-      ansible.builtin.service:
-        name: httpd
-        state: started
-      when: ansible_os_family == "RedHat"
+  roles:
+    - web_servers
